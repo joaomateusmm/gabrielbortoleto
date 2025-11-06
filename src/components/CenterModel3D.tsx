@@ -4,7 +4,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { useMotionValue, useSpring, type MotionValue } from "framer-motion";
 import * as THREE from "three";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import Noise from "@/components/Noise";
 
 const springConfig = {
@@ -18,11 +18,16 @@ interface ModelProps {
   rotateY: MotionValue<number>;
   moveX: MotionValue<number>;
   moveY: MotionValue<number>;
+  isMobile: boolean;
 }
 
-function Model({ rotateX, rotateY, moveX, moveY }: ModelProps) {
+function Model({ rotateX, rotateY, moveX, moveY, isMobile }: ModelProps) {
   const gltf = useGLTF("/helmet.glb");
   const groupRef = useRef<THREE.Group>(null);
+
+  // Define escala baseada no tamanho da tela
+  const modelScale = isMobile ? 1.0 : 1.7;
+  const modelPositionY = isMobile ? 0.2 : 0.3;
 
   // Aplica material ao modelo
   gltf.scene.traverse((child) => {
@@ -62,12 +67,29 @@ function Model({ rotateX, rotateY, moveX, moveY }: ModelProps) {
 
   return (
     <group ref={groupRef}>
-      <primitive object={gltf.scene} scale={1.7} position={[0, 0.3, 0]} />
+      <primitive
+        object={gltf.scene}
+        scale={modelScale}
+        position={[0, modelPositionY, 0]}
+      />
     </group>
   );
 }
 
 export default function CenterModel3D() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    // Detecta se é mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   // Motion values para rotação
   const rotateX = useSpring(useMotionValue(0), springConfig);
   const rotateY = useSpring(useMotionValue(0), springConfig);
@@ -189,6 +211,7 @@ export default function CenterModel3D() {
           rotateY={rotateY}
           moveX={moveX}
           moveY={moveY}
+          isMobile={isMobile}
         />
       </Canvas>
     </div>

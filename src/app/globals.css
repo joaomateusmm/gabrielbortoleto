@@ -159,7 +159,15 @@
 }
 
 .box-shadow {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 1);
+  box-shadow: 1px -1px 15px 0px rgba(7, 46, 0, 0.75);
+  -webkit-box-shadow: 1px -1px 15px 0px rgba(7, 46, 0, 0.75);
+  -moz-box-shadow: 1px -1px 15px 0px rgba(7, 46, 0, 0.75);
+}
+
+.box-shadow:hover {
+  box-shadow: 1px -1px 20px 0px rgba(10, 68, 0, 0.75);
+  -webkit-box-shadow: 1px -1px 20px 0px rgba(10, 68, 0, 0.75);
+  -moz-box-shadow: 1px -1px 20px 0px rgba(10, 68, 0, 0.75);
 }
 
 body {
