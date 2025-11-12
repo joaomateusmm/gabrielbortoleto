@@ -53,7 +53,7 @@ export default function RaceCardDesktop() {
                 <Interlagos3D />
               </div>
               <ShinyText2
-                text="MÔNACO GP"
+                text="BRASIL GRAN PRIX  "
                 disabled={false}
                 speed={2}
                 className="text-white/70 text-sm sm:text-md font-medium"

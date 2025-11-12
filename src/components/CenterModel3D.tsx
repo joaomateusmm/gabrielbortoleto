@@ -16,12 +16,10 @@ const springConfig = {
 interface ModelProps {
   rotateX: MotionValue<number>;
   rotateY: MotionValue<number>;
-  moveX: MotionValue<number>;
-  moveY: MotionValue<number>;
   isMobile: boolean;
 }
 
-function Model({ rotateX, rotateY, moveX, moveY, isMobile }: ModelProps) {
+function Model({ rotateX, rotateY, isMobile }: ModelProps) {
   const gltf = useGLTF("/models/helmet.glb");
   const groupRef = useRef<THREE.Group>(null);
 
@@ -49,19 +47,19 @@ function Model({ rotateX, rotateY, moveX, moveY, isMobile }: ModelProps) {
     }
   });
 
-  // Atualiza a rotação e posição do modelo baseado nos motion values
+  // Atualiza apenas a rotação do modelo baseado nos motion values
   useFrame(() => {
     if (groupRef.current) {
       // Converte graus para radianos e aplica à rotação base
       const rotXRad = (rotateX.get() * Math.PI) / 180;
       const rotYRad = (rotateY.get() * Math.PI) / 180;
 
-      groupRef.current.rotation.x = 0.4 + rotXRad; // Invertido aqui
+      groupRef.current.rotation.x = 0.4 + rotXRad;
       groupRef.current.rotation.y = Math.PI + rotYRad;
 
-      // Adiciona movimento sutil de translação (capacete segue o cursor)
-      groupRef.current.position.x = moveX.get() * 0.15; // Movimento horizontal seguindo o cursor
-      groupRef.current.position.y = moveY.get() * 0.15; // Movimento vertical seguindo o cursor
+      // Posição fixa no centro - sem movimento
+      groupRef.current.position.x = 0;
+      groupRef.current.position.y = 0;
     }
   });
 
@@ -90,20 +88,16 @@ export default function CenterModel3D() {
 
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
-  // Motion values para rotação
+  // Motion values apenas para rotação
   const rotateX = useSpring(useMotionValue(0), springConfig);
   const rotateY = useSpring(useMotionValue(0), springConfig);
-
-  // Motion values para movimento/translação
-  const moveX = useSpring(useMotionValue(0), springConfig);
-  const moveY = useSpring(useMotionValue(0), springConfig);
 
   const rotateAmplitude = 14; // Amplitude da rotação em graus
 
   useEffect(() => {
-    // Função para capturar coordenadas GLOBAIS do mouse (independente de qualquer elemento)
+    // Função para capturar coordenadas do mouse e aplicar APENAS rotação
     function handleGlobalMouseMove(e: MouseEvent) {
-      // Pega as coordenadas exatas do cursor
+      // Pega as coordenadas do cursor
       const mouseX = e.clientX;
       const mouseY = e.clientY;
 
@@ -111,39 +105,31 @@ export default function CenterModel3D() {
       const offsetX = mouseX - window.innerWidth / 2;
       const offsetY = mouseY - window.innerHeight / 2;
 
-      // Normaliza para valores entre -1 e 1
-      const normalizedX = offsetX / (window.innerWidth / 2);
-      const normalizedY = offsetY / (window.innerHeight / 2);
-
-      // Calcula rotação baseada na posição do mouse (invertido para criar efeito tilt)
-      const rotationX = (offsetY / (window.innerHeight / 2)) * rotateAmplitude; // Removido o sinal negativo
+      // Calcula rotação baseada na posição do mouse
+      const rotationX = (offsetY / (window.innerHeight / 2)) * rotateAmplitude;
       const rotationY = (offsetX / (window.innerWidth / 2)) * rotateAmplitude;
 
-      // Aplica os valores
+      // Aplica apenas os valores de rotação
       rotateX.set(rotationX);
       rotateY.set(rotationY);
-      moveX.set(normalizedX);
-      moveY.set(-normalizedY); // Inverte Y para seguir o cursor corretamente
     }
 
     // Função para resetar quando o mouse sair da janela
     function handleGlobalMouseLeave() {
       rotateX.set(0);
       rotateY.set(0);
-      moveX.set(0);
-      moveY.set(0);
     }
 
-    // Adiciona event listeners GLOBAIS no window
+    // Adiciona event listeners no window
     window.addEventListener("mousemove", handleGlobalMouseMove);
     window.addEventListener("mouseleave", handleGlobalMouseLeave);
 
-    // Cleanup quando o componente desmontar
+    // Cleanup
     return () => {
       window.removeEventListener("mousemove", handleGlobalMouseMove);
       window.removeEventListener("mouseleave", handleGlobalMouseLeave);
     };
-  }, [rotateX, rotateY, moveX, moveY]);
+  }, [rotateX, rotateY]);
 
   return (
     <div
@@ -206,13 +192,7 @@ export default function CenterModel3D() {
         {/* Luz de destaque sutil de cima */}
         <directionalLight position={[0, 10, 0]} intensity={0.4} color="#fff" />
 
-        <Model
-          rotateX={rotateX}
-          rotateY={rotateY}
-          moveX={moveX}
-          moveY={moveY}
-          isMobile={isMobile}
-        />
+        <Model rotateX={rotateX} rotateY={rotateY} isMobile={isMobile} />
       </Canvas>
     </div>
   );
